@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "name": "Nike Air Force 1 (Budget Batch)",
+    "category": "shoes",
+    "brand": "Nike",
+    "price": "€18.46",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  },
+  {
+    "id": 2,
+    "name": "Air Jordan 4 Shoes",
+    "category": "shoes",
+    "brand": "Air Jordan",
+    "price": "€51.24",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  },
+  {
+    "id": 3,
+    "name": "Alexander McQueen Sneaker",
+    "category": "shoes",
+    "brand": "McQueen",
+    "price": "€55.28",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  },
+  {
+    "id": 4,
+    "name": "Moncler Maya Hooded Jacket",
+    "category": "down jackets",
+    "brand": "Moncler",
+    "price": "€70.72",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  },
+  {
+    "id": 5,
+    "name": "Supreme Box Logo Hoodie",
+    "category": "hoodie",
+    "brand": "Supreme",
+    "price": "€41.04",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  },
+  {
+    "id": 6,
+    "name": "Burberry Belts Classic",
+    "category": "accessories",
+    "brand": "Burberry",
+    "price": "€8.38",
+    "img": "https://via.placeholder.com/200",
+    "link": "https://example.com"
+  }
+]

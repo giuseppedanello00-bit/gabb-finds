@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabbrielFinds - Catalog</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- tsParticles per lo sfondo spaziale -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        #tsparticles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .glass-card {
+            background: rgba(20, 20, 20, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+        .btn-filter, .btn-brand {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+        .btn-filter:hover, .btn-filter.active,
+        .btn-brand:hover, .btn-brand.active {
+            background: #ffffff;
+            color: #000000;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 relative">
+
+    <!-- Sfondo con stelle animate -->
+    <div id="tsparticles"></div>
+
+    <!-- Header / Navigazione -->
+    <header class="text-center pt-8 pb-4 px-4 relative z-10">
+        <h1 class="text-4xl md:text-5xl font-black tracking-wider uppercase mb-2">GABBRIELFINDS</h1>
+        <p class="text-gray-400 text-sm mb-6">Molto più del tuo semplice foglio di calcolo</p>
+        
+        <!-- Barra di Ricerca -->
+        <div class="max-w-md mx-auto relative mb-6">
+            <input type="text" id="searchInput" placeholder="Cerca..." 
+                   class="w-full bg-black/60 border border-zinc-700 rounded-full py-2.5 px-10 text-sm text-white focus:outline-none focus:border-white transition backdrop-blur-md">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 relative z-10">
+        
+        <!-- Livello 1: Filtri Categorie -->
+        <div class="flex flex-wrap justify-center gap-2 mb-4" id="categoryFilters">
+            <button class="btn-filter active px-4 py-1.5 rounded-full text-xs font-semibold uppercase">All Products</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Shoes</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">T-Shirt</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Hoodie</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Down Jackets</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Jacket</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Pants</button>
+            <button class="btn-filter px-4 py-1.5 rounded-full text-xs font-semibold uppercase">Accessories</button>
+        </div>
+
+        <!-- Livello 2: Filtri Brand Dinamici -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8 hidden" id="brandFilters">
+            <!-- Popolato dinamicamente da JavaScript -->
+        </div>
+
+        <!-- Info e Conteggio -->
+        <div class="flex justify-between items-center text-xs text-gray-400 mb-4 px-1">
+            <span>Ordinamento predefinito</span>
+            <span id="productCount">Caricamento prodotti...</span>
+        </div>
+
+        <!-- Griglia Prodotti -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="productGrid">
+            <!-- Inseriti da JavaScript -->
+        </div>
+    </main>
+
+    <script>
+        // Inizializzazione Sfondo Animato
+        tsParticles.load("tsparticles", {
+            particles: {
+                number: { value: 90, density: { enable: true, value_area: 800 } },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.8, random: true },
+                size: { value: 2, random: true },
+                move: { enable: true, speed: 0.6, direction: "bottom-right", straight: false, out_mode: "out" }
+            },
+            retina_detect: true
+        });
+
+        // Logica Frontend
+        let products = [];
+        let selectedCategory = 'all products';
+        let selectedBrand = 'all';
+
+        const grid = document.getElementById('productGrid');
+        const searchInput = document.getElementById('searchInput');
+        const countLabel = document.getElementById('productCount');
+        const categoryButtons = document.querySelectorAll('#categoryFilters button');
+        const brandFiltersContainer = document.getElementById('brandFilters');
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/products');
+                products = await response.json();
+                renderProducts();
+            } catch (error) {
+                console.error('Errore di caricamento:', error);
+                countLabel.textContent = 'Errore di connessione al server Python';
+            }
+        }
+
+        function updateBrandFilters() {
+            if (selectedCategory === 'all products') {
+                brandFiltersContainer.classList.add('hidden');
+                selectedBrand = 'all';
+                return;
+            }
+
+            const categoryProducts = products.filter(p => p.category.toLowerCase() === selectedCategory);
+            const brands = [...new Set(categoryProducts.map(p => p.brand).filter(Boolean))];
+
+            if (brands.length === 0) {
+                brandFiltersContainer.classList.add('hidden');
+                selectedBrand = 'all';
+                return;
+            }
+
+            brandFiltersContainer.classList.remove('hidden');
+            brandFiltersContainer.innerHTML = `
+                <button class="btn-brand ${selectedBrand === 'all' ? 'active' : ''} px-3 py-1 rounded-full text-[11px] font-semibold uppercase">
+                    Tutti i Brand
+                </button>
+                ${brands.map(brand => `
+                    <button class="btn-brand ${selectedBrand.toLowerCase() === brand.toLowerCase() ? 'active' : ''} px-3 py-1 rounded-full text-[11px] font-semibold uppercase">
+                        ${brand}
+                    </button>
+                `).join('')}
+            `;
+
+            document.querySelectorAll('#brandFilters button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#brandFilters button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const text = btn.textContent.trim().toLowerCase();
+                    selectedBrand = text === 'tutti i brand' ? 'all' : text;
+                    renderProducts();
+                });
+            });
+        }
+
+        function renderProducts() {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            const filtered = products.filter(p => {
+                const matchesCategory = selectedCategory === 'all products' || p.category.toLowerCase() === selectedCategory;
+                const matchesBrand = selectedBrand === 'all' || (p.brand && p.brand.toLowerCase() === selectedBrand);
+                const matchesSearch = p.name.toLowerCase().includes(query);
+                return matchesCategory && matchesBrand && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500">Nessun prodotto trovato.</div>`;
+            } else {
+                grid.innerHTML = filtered.map(p => `
+                    <div class="glass-card rounded-xl p-3 flex flex-col justify-between hover:border-zinc-500 transition">
+                        <div class="bg-white rounded-lg p-4 mb-3 aspect-square flex items-center justify-center">
+                            <img src="${p.img}" alt="${p.name}" class="object-contain max-h-full">
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-gray-200 mb-2 line-clamp-2">${p.name}</h3>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-extrabold">${p.price}</span>
+                                <a href="${p.link}" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] font-medium px-3 py-1.5 rounded-md transition">Visualizza</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            countLabel.textContent = `Mostrando ${filtered.length} prodotti`;
+        }
+
+        searchInput.addEventListener('input', renderProducts);
+
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedCategory = btn.textContent.trim().toLowerCase();
+                selectedBrand = 'all';
+                updateBrandFilters();
+                renderProducts();
+            });
+        });
+
+        fetchProducts();
+    </script>
+</body>
+</html>
